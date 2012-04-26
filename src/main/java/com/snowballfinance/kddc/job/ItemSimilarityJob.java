@@ -68,17 +68,22 @@ public class ItemSimilarityJob extends Configured implements Tool{
 	private static final int FULLSCORE = 8 + 4 + 2 + 2; 
 	
 	private static float getCategorySimScore(String srcCat, String destCat) {
-		String[] srcCats = srcCat.split(".");
-		String[] destCats = destCat.split(".");
+		String[] srcCats = srcCat.split("\\.");
+		String[] destCats = destCat.split("\\.");
 		float res = 0f;
+		int minlen = Math.min(srcCats.length, destCats.length);
 		if(srcCats[0].equals(destCats[0]))
 			res += 8;
+		if(minlen > 1)
 		if(srcCats[1].equals(destCats[1]))
 			res += 4;
 		if(srcCats[2].equals(destCats[2]))
 			res += 2;
-		if(srcCats[3].equals(destCats[3]))
-			res += 1;
+		if(minlen > 3)
+		{
+			if(srcCats[3].equals(destCats[3]))
+				res += 1;
+		}
 		return res;
 	}
 	
@@ -126,6 +131,12 @@ public class ItemSimilarityJob extends Configured implements Tool{
 	{
 		private static float computeSocre(String srccat, String srckeywords, Item destItem )
 		{
+			float catScore = 0f;
+			try {
+				catScore = getCategorySimScore(srccat, destItem.getCategory());
+			} catch (java.lang.ArrayIndexOutOfBoundsException e) {
+				logger.error("CateAndKeyWordMapper getCategorySimScore Error. SRC:" + srccat + ", DEST:" + destItem.getCategory(), e);
+			}
 			return (getCategorySimScore(srccat, destItem.getCategory()) + getKeyWordSimScore(srckeywords, destItem.getKeyWords())) / 16;
 		}
 		
@@ -133,7 +144,7 @@ public class ItemSimilarityJob extends Configured implements Tool{
 		protected void map(LongWritable ikey, Text ival,
 				Context context)
 				throws IOException, InterruptedException {
-			String[] keyValues = ival.toString().split(" ");
+			String[] keyValues = ival.toString().split("\t");
 			String key = keyValues[0];
 			String cat = keyValues[1];
 			String keywords = keyValues[2];
@@ -142,6 +153,11 @@ public class ItemSimilarityJob extends Configured implements Tool{
 				float score = computeSocre(cat, keywords, item);
 				context.write(new Text(key + " " + item.getKey()), new FloatWritable(score));
 			}
+			Item curItem = new Item();
+			curItem.setKey(key);
+			curItem.setCategory(cat);
+			curItem.setKeyWords(keywords);
+			itemKeyValPairList.add(curItem);
 		}
 	}
 	

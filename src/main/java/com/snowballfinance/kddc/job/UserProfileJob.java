@@ -22,6 +22,8 @@ public class UserProfileJob extends AbstractJob{
 	
 	private static Logger logger = Logger.getLogger(UserProfileJob.class);
 	
+
+	
 	@Override
 	public int run(String[] arg0) throws Exception {
 		addInputOption();

@@ -11,10 +11,11 @@
 	
 	<property name="java.src.dir" value="src/main/java" />
 	<property name="java.test.dir" value="src/test/java" />
-	<!--
+<!--
 	<property name="conf.src.dir" value="src/main/conf" />
+-->
 	<property name="shell.src.dir" value="shell" />
-	-->
+
 	<property name="build.base.dir" value="build" />
     <property name="build.bin.dir" value="${build.base.dir}/shell/bin" />
 	<property name="build.lib.dir" value="${build.base.dir}/shell/lib" />
@@ -52,7 +53,7 @@
 				<attribute name="Specification-Title" value="Snowball Community Platform" />
 				<attribute name="Specification-Vendor" value="Snowball Finance" />
 				<attribute name="Implementation-Version" value="${build.version}" />
-				<attribute name="Implementation-Vendor" value="Snowball Recommender" />
+				<attribute name="Implementation-Vendor" value="Snowball Kddc" />
 			</manifest>
 			<fileset dir="${build.bin.web.dir}">
 				<include name="com/**/*" />
@@ -66,19 +67,17 @@
 			<fileset dir="${bin.dir}">
 				<include name="**/*" />
 			</fileset>
-			<!--
 			<fileset dir="${shell.src.dir}">
 				<include name="**/*" />
 			</fileset>
-			-->
 		</copy>
-		<!--
+<!--
 		<copy todir="${build.bin.web.dir}">
 			<fileset dir="${conf.src.dir}">
 				<include name="**/*" />
 			</fileset>
 		</copy>
-		-->
+-->
 		<copy todir="${build.lib.web.dir}">
 			<fileset dir="${lib.dir}">
 				<include name="**/*" />

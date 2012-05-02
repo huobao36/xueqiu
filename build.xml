@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="kddc" default="deploy" basedir=".">
+
+	<property environment="env" />
+
+	<property name="deploy.base.dir" value="/data/deploy/${ant.project.name}" />
+	<property name="build.version" value="1.0.0" />
+
+	<property name="bin.dir" value="bin" />
+	<property name="lib.dir" value="lib" />
+	
+	<property name="java.src.dir" value="src/main/java" />
+	<property name="java.test.dir" value="src/test/java" />
+<!--
+	<property name="conf.src.dir" value="src/main/conf" />
+-->
+	<property name="shell.src.dir" value="shell" />
+
+	<property name="build.base.dir" value="build" />
+    <property name="build.bin.dir" value="${build.base.dir}/shell/bin" />
+	<property name="build.lib.dir" value="${build.base.dir}/shell/lib" />
+	<property name="build.log.dir" value="${build.base.dir}/log" />
+
+	<property name="build.view.web.dir" value="${build.base.dir}/webapp" />
+	<property name="build.inf.web.dir" value="${build.view.web.dir}/WEB-INF" />
+	<property name="build.bin.web.dir" value="${build.inf.web.dir}/classes" />
+	<property name="build.lib.web.dir" value="${build.inf.web.dir}/lib" />
+
+	<property name="branch.name" value="${branch}" />
+	
+	<path id="classpath">
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+	
+	<target name="init">
+		<mkdir dir="${build.bin.dir}" />
+		<mkdir dir="${build.lib.dir}" />
+		<mkdir dir="${build.log.dir}" />
+		<mkdir dir="${build.inf.web.dir}" />
+		<mkdir dir="${build.bin.web.dir}" />
+		<mkdir dir="${build.lib.web.dir}" />
+	</target>
+
+	<target name="compile" depends="clean,init">
+		<javac debug="on" debuglevel="lines,vars,source" srcdir="${java.src.dir}" destdir="${build.bin.web.dir}" encoding="UTF-8" nowarn="true" source="1.6" target="1.6">
+			<classpath refid="classpath" />
+		</javac>
+		<jar destfile="${build.lib.dir}/${ant.project.name}-${build.version}.jar">
+			<manifest>
+				<attribute name="Built-By" value="Louis Deng" />
+				<attribute name="Specification-Title" value="Snowball Community Platform" />
+				<attribute name="Specification-Vendor" value="Snowball Finance" />
+				<attribute name="Implementation-Version" value="${build.version}" />
+				<attribute name="Implementation-Vendor" value="Snowball Kddc" />
+			</manifest>
+			<fileset dir="${build.bin.web.dir}">
+				<include name="com/**/*" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="build" depends="compile">
+		<mkdir dir="${bin.dir}" />
+		<copy todir="${build.bin.dir}">
+			<fileset dir="${bin.dir}">
+				<include name="**/*" />
+			</fileset>
+			<fileset dir="${shell.src.dir}">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+<!--
+		<copy todir="${build.bin.web.dir}">
+			<fileset dir="${conf.src.dir}">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+-->
+		<copy todir="${build.lib.web.dir}">
+			<fileset dir="${lib.dir}">
+				<include name="**/*" />
+				<exclude name="compile" />
+				<exclude name="compile/**/*" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="deploy" depends="build">
+		<delete dir="${deploy.base.dir}/shell" />
+		<delete dir="${deploy.base.dir}/webapp" />
+		<copy todir="${deploy.base.dir}">
+			<fileset dir="${build.base.dir}">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+		<chmod dir="${deploy.base.dir}/shell/bin" perm="ugo+rx" includes="**/*" />
+	</target>
+
+	<target name="clean">
+		<delete dir="${build.base.dir}" />
+	</target>
+
+	<!-- JUnit -->
+	<target name="test">
+		<delete dir="${test.dir}" />
+		<mkdir dir="${test.dir}" />
+		<javac debug="on" debuglevel="lines,vars,source" srcdir="${java.test.dir}" destdir="${test.dir}" encoding="UTF-8" nowarn="true" source="1.6" target="1.6">
+			<classpath refid="classpath" />
+			<classpath location="${build.bin.web.dir}" />
+		</javac>
+		<junit printsummary="yes" haltonfailure="no">
+			<formatter type="xml" />
+			<classpath refid="classpath" />
+			<classpath>
+				<pathelement location="${test.dir}" />
+				<pathelement location="${build.bin.web.dir}" />
+			</classpath>
+			<batchtest fork="no" todir="${test.dir}">
+				<fileset dir="${java.test.dir}">
+					<include name="**/*Test*.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+</project>

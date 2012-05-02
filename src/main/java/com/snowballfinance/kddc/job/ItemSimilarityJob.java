@@ -72,13 +72,19 @@ public class ItemSimilarityJob extends Configured implements Tool{
 		String[] destCats = destCat.split("\\.");
 		float res = 0f;
 		int minlen = Math.min(srcCats.length, destCats.length);
-		if(srcCats[0].equals(destCats[0]))
-			res += 8;
-		if(minlen > 1)
-		if(srcCats[1].equals(destCats[1]))
-			res += 4;
-		if(srcCats[2].equals(destCats[2]))
-			res += 2;
+		if(minlen > 0)
+		{
+			if(srcCats[0].equals(destCats[0]))
+				res += 8;
+		}
+		if(minlen > 1) {
+			if(srcCats[1].equals(destCats[1]))
+				res += 4;
+		}
+		if(minlen > 2) {
+			if(srcCats[2].equals(destCats[2]))
+				res += 2;
+		}
 		if(minlen > 3)
 		{
 			if(srcCats[3].equals(destCats[3]))

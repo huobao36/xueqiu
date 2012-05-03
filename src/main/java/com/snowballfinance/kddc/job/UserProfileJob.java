@@ -26,6 +26,8 @@ public class UserProfileJob extends AbstractJob{
 	
 	public static void main(String[] args)
 	{
+		if(args != null)
+			logger.info("UserProfileJob args length:" + args.length);
 		int res = 0;
 		try {
 			res = ToolRunner.run(new Configuration(), new ItemSimilarityJob(), args);
@@ -39,6 +41,8 @@ public class UserProfileJob extends AbstractJob{
 	public int run(String[] arg0) throws Exception {
 		addInputOption();
 		addOutputOption();
+		logger.info("UserProfileJob input path: " + getInputPath());
+		logger.info("UserProfileJob output path: " + getOutputPath());
 		Job simJob = prepareJob(getInputPath(), getOutputPath(), UserProfileMapper.class, 
 				LongWritable.class, Text.class, UserProfileSimReducer.class, Text.class, FloatWritable.class);
 		simJob.setCombinerClass(UserProfileSimReducer.class);

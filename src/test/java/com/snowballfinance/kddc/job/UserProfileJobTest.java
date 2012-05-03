@@ -9,7 +9,7 @@ public class UserProfileJobTest {
 	public void testJob()
 	{
 		try {
-			String[] args = {"/data/tmp/kddc/input", "/data/tmp/kddc/profileoutput"};
+			String[] args = {"/data/tmp/kddc/input/user_tiny_profile.txt", "/data/tmp/kddc/profileoutput"};
 			ToolRunner.run(new Configuration(), new ItemSimilarityJob(), args);
 		} catch (Exception e) {
 			System.err.println(e);

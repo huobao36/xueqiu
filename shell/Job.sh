@@ -18,7 +18,6 @@ for f in $KDDC_LIB_HOME/*.jar; do
 	fi
 done
 
-echo -e "KDDC_CLASSPATH:$KDDC_CLASSPATH"
 
 if [ "$HADOOP_CLASSPATH" != "" ] ; then
 	HADOOP_CLASSPATH=${KDDC_CLASSPATH}:${HADOOP_CLASSPATH}
@@ -31,7 +30,5 @@ echo -e "HADOOP_CLASSPATH:$HADOOP_CLASSPATH"
 export HADOOP_CLASSPATH
 echo -e "Job Class Name: $1"
 
-echo -e "Params : ${'$@'#'$1'}"
 
-exec "$HADOOP_HOME/bin/hadoop" jar $KDDC_JOB "$1" "$@#$1"
-
+exec "$HADOOP_HOME/bin/hadoop" jar $KDDC_JOB "$@" 

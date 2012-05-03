@@ -10,4 +10,4 @@ else
 fi
 
 
-$path/Job.sh com.snowballfinance.kddc.job.UserProfileJob --input "$1" --output "$2" 
+$path/Job.sh com.snowballfinance.kddc.job.UserProfileJob "$1" "$2" 

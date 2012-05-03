@@ -1,8 +1,7 @@
 KDDC_LIB_HOME="/data/deploy/kddc/webapp/WEB-INF/lib"
 KDDC_JOB="/data/deploy/kddc/shell/lib/kddc-1.0.0.jar"
 HADOOP_HOME="/data/hadoop"
-CLASS=$1
-if [ ! -n "$KDDC_JOB" -o ! -n "$CLASS" ];then
+if [ ! -n "$KDDC_JOB" ];then
     echo 'Usage: ./Job.sh JobName ClassName Params  '
     exit 0
 else
@@ -30,5 +29,9 @@ fi
 echo -e "HADOOP_CLASSPATH:$HADOOP_CLASSPATH"
 
 export HADOOP_CLASSPATH
-exec "$HADOOP_HOME/bin/hadoop" jar $KDDC_JOB $CLASS "$@"
+echo -e "Job Class Name: $1"
+
+echo -e "Params : ${'$@'#'$1'}"
+
+exec "$HADOOP_HOME/bin/hadoop" jar $KDDC_JOB "$1" "$@#$1"
 

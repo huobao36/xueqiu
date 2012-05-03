@@ -8,12 +8,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.apache.mahout.common.AbstractJob;
 
@@ -22,7 +24,16 @@ public class UserProfileJob extends AbstractJob{
 	
 	private static Logger logger = Logger.getLogger(UserProfileJob.class);
 	
-
+	public static void main(String[] args)
+	{
+		int res = 0;
+		try {
+			res = ToolRunner.run(new Configuration(), new ItemSimilarityJob(), args);
+		} catch (Exception e) {
+			logger.error("UserProfileJob Tool Runner Err.", e);
+		}
+		System.exit(res);
+	}
 	
 	@Override
 	public int run(String[] arg0) throws Exception {

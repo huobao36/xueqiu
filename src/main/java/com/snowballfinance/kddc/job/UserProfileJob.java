@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
@@ -15,6 +16,8 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.apache.mahout.common.AbstractJob;
@@ -30,7 +33,7 @@ public class UserProfileJob extends AbstractJob{
 			logger.info("UserProfileJob args length:" + args.length);
 		int res = 0;
 		try {
-			res = ToolRunner.run(new Configuration(), new ItemSimilarityJob(), args);
+			res = ToolRunner.run(new Configuration(), new UserProfileJob(), args);
 		} catch (Exception e) {
 			logger.error("UserProfileJob Tool Runner Err.", e);
 		}
@@ -38,13 +41,18 @@ public class UserProfileJob extends AbstractJob{
 	}
 	
 	@Override
-	public int run(String[] arg0) throws Exception {
+	public int run(String[] args) throws Exception {
 		addInputOption();
 		addOutputOption();
+		Map<String,String> parsedArgs = parseArguments(args);
+	    if (parsedArgs == null) {
+	      return -1;
+	    }
+
 		logger.info("UserProfileJob input path: " + getInputPath());
 		logger.info("UserProfileJob output path: " + getOutputPath());
-		Job simJob = prepareJob(getInputPath(), getOutputPath(), UserProfileMapper.class, 
-				LongWritable.class, Text.class, UserProfileSimReducer.class, Text.class, FloatWritable.class);
+		Job simJob = prepareJob(getInputPath(), getOutputPath(), TextInputFormat.class, UserProfileMapper.class, 
+				Text.class, FloatWritable.class, UserProfileSimReducer.class, Text.class, FloatWritable.class, TextOutputFormat.class);
 		simJob.setCombinerClass(UserProfileSimReducer.class);
 		simJob.waitForCompletion(true);
 		return 0;
@@ -120,6 +128,7 @@ public class UserProfileJob extends AbstractJob{
 			String sexuality = keyValues[2];
 			String tweetCount = keyValues[3];
 			String tags = keyValues[4];
+			
 			for(UserProfile profile : userProfileList)
 			{
 				float score = computeSocre(tags, profile.getTags());
@@ -141,8 +150,8 @@ public class UserProfileJob extends AbstractJob{
 			Iterator<FloatWritable> iter = scores.iterator();
 			float score = iter.next().get();
 			ctx.write(key, new FloatWritable(score));
-			String[] keyPairs = key.toString().split(" ");
-			ctx.write(new Text(keyPairs[1] + " " + keyPairs[0]), new FloatWritable(score));
+//			String[] keyPairs = key.toString().split(" ");
+//			ctx.write(new Text(keyPairs[1] + " " + keyPairs[0]), new FloatWritable(score));
 		}
 	}
   

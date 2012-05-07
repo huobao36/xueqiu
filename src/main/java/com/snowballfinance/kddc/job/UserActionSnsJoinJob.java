@@ -3,31 +3,26 @@ package com.snowballfinance.kddc.job;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.contrib.utils.join.DataJoinMapperBase;
-import org.apache.hadoop.contrib.utils.join.DataJoinReducerBase;
-import org.apache.hadoop.contrib.utils.join.TaggedMapOutput;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.mapred.FileInputFormat;
-import org.apache.hadoop.mapred.FileOutputFormat;
-import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.KeyValueTextInputFormat;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reducer;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapred.TextInputFormat;
-import org.apache.hadoop.mapred.TextOutputFormat;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
+
 
 
 // The DataJoinMapper user the old api 
@@ -52,140 +47,107 @@ public class UserActionSnsJoinJob extends Configured implements Tool {
 	@Override
 	public int run(String[] args) throws Exception {
         Configuration conf = getConf();
-        
-        JobConf job = new JobConf(conf, UserActionSnsJoinJob.class);
-        Path in = new Path(args[0]);
-        Path out = new Path(args[1]);
-        FileInputFormat.setInputPaths(job, in);
-        FileOutputFormat.setOutputPath(job, out);
-        
-        job.setJobName("DataJoin");
-        job.setMapperClass(JoinMapper.class);
-        job.setReducerClass(JoinReduce.class);
-        
-        job.setInputFormat(TextInputFormat.class);
-        job.setOutputFormat(TextOutputFormat.class);
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(TaggedWritable.class);
-        JobClient.runJob(job); 
+		Job job = new Job(conf);
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(IntWritable.class);
+		job.setMapperClass(JoinMapper.class);
+		job.setReducerClass(JoinReducer.class);
+		job.setInputFormatClass(TextInputFormat.class);
+		job.setOutputFormatClass(TextOutputFormat.class);
+		job.setMapOutputKeyClass(Text.class);
+		job.setMapOutputValueClass(UserActionSnsWritable.class);
+		FileInputFormat.addInputPath(job, new Path(args[0]));
+		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		job.waitForCompletion(true);
         return 0;
 	}
 	
-
-	public static class JoinMapper extends DataJoinMapperBase {
-		
-		private final static String USER_ACTION_INPUT = "user_action.txt";
-		private final static String USER_SNS_INPUT = "user_sns.txt";
-		private final static String USER_ACTION_TAG = "0";
-		private final static String USER_SNS_TAG = "1";
-		
-		
-		@Override
-		protected Text generateGroupKey(TaggedMapOutput aRecord) {
-			String line = aRecord.getData().toString();
-			String[] values = line.split("\t");
-			System.out.println("generateGroupKey:" + values[0] + "," + values[1]);
-			return new Text(values[0] + "," + values[1]);
+	private static class UserActionSnsWritable implements Writable
+	{
+		public boolean isFollowed() {
+			return followed;
 		}
-
-		@Override
-		protected Text generateInputTag(String input) {
-			String[] subFN = input.split("/");
-			System.out.println("generateInputTage: input," + input);
-			if(subFN != null)
-			{
-				input = subFN[subFN.length - 1];
-			}
-			if(input.equals(USER_ACTION_INPUT))
-				return new Text(USER_ACTION_TAG);
-			else if(input.equals(USER_SNS_INPUT))
-				return new Text(USER_SNS_TAG);
-			else 
-				return null;
+		public void setFollowed(boolean followed) {
+			this.followed = followed;
 		}
-
+		public String getActions() {
+			return actions;
+		}
+		public void setActions(String actions) {
+			this.actions = actions;
+		}
+		private boolean followed;
+		private String actions;
+		
 		@Override
-		protected TaggedMapOutput generateTaggedMapOutput(Object value) {
-			TaggedWritable retv = null;
-			
-			if(this.inputTag != null && this.inputTag.toString().equals(USER_SNS_TAG))
+		public void readFields(DataInput in) throws IOException {
+			actions = in.readLine();
+			followed = in.readBoolean();
+		}
+		@Override
+		public void write(DataOutput out) throws IOException {
+			out.writeChars(actions + "\n");
+			out.writeBoolean(followed);
+		} 
+		
+	}
+	
+	public static class JoinMapper extends Mapper<LongWritable, Text, Text, UserActionSnsWritable>
+	{
+		@Override 
+		protected void map(LongWritable ikey, Text ival,
+				Context context)
+				throws IOException, InterruptedException {
+			String[] keyValues = ival.toString().split("\t");
+			if(keyValues != null)
 			{
-				StringBuffer sb = new StringBuffer();
-				sb.append(value.toString()).append('\t').append("1");
-				retv = new TaggedWritable(new Text(sb.toString()));		
+				int len = keyValues.length;
+				if(len == 5) {
+					String key = keyValues[0] + "\t" + keyValues[1];
+					String actions = keyValues[2] + "\t" + keyValues[3] + "\t" + keyValues[4];
+					UserActionSnsWritable value = new UserActionSnsWritable();
+					value.setActions(actions);
+					context.write(new Text(key), value);
+				}else if(len == 2) {
+					String key = keyValues[0] + "\t" + keyValues[1];
+					UserActionSnsWritable value = new UserActionSnsWritable();
+					value.setFollowed(true);
+					context.write(new Text(key), value);
+				}
 			}
-			else
-				retv = new TaggedWritable((Text) value);
-            retv.setTag(this.inputTag);
-			System.out.println("generateTaggedMapOutput: value," + retv.getData().toString());
-			System.out.println("generateTaggedMapOutput: tag," + retv.getTag().toString());
-
-            return retv;
 		}
 	}
 	
-    public static class JoinReduce extends DataJoinReducerBase {
-        
-        protected TaggedMapOutput combine(Object[] tags, Object[] values) {
-        	for(Object obj : tags) {
-        		Text tag = (Text) obj;
-        		System.out.println("TaggedMapOutput: tag" + tag.toString() );
-        	}
-        	
-            String joinedStr = ""; 
-            for (int i=0; i < values.length; i++) {
-                if (i > 0) 
-                	joinedStr += "\t";
-                TaggedWritable tw = (TaggedWritable) values[i];
-                String line = ((Text) tw.getData()).toString();
-                
-                String[] tokens = line.split("\t");
-                int len = tokens.length;
-                if(tokens != null)
-                {
-                	for(int j = 2; j < len; ++j)
-                	{
-                		joinedStr += tokens[j];
-                	}
-                }
-                
-                if(tokens != null)
-                	joinedStr += tokens[tokens.length - 1];
-            }
-            TaggedWritable retv = new TaggedWritable(new Text(joinedStr));
-            retv.setTag((Text) tags[0]); 
-            return retv;
-        }
-    }
-    
-    public static class TaggedWritable extends TaggedMapOutput {
-        
-        private Text data;
-        
-        public TaggedWritable() {
-        	
-        }
-        
-        public TaggedWritable(Text data) {
-            this.tag = new Text("");
-            this.data = data;
-        }
-        
-        public Writable getData() {
-            return data;
-        }
-        
-        public void write(DataOutput out) throws IOException {
-            out.writeBytes(tag + "\n");
-        	out.write(data.getBytes());
-        }
-        
-        public void readFields(DataInput in) throws IOException {
-        	tag = new Text(in.readLine());
-        	System.out.println("readFields:" + tag.toString());
-        	data = new Text(in.readLine());
-        	System.out.println("readFields:" + data.toString());
-        }
-    }
-
+	public static class JoinReducer extends Reducer<Text, UserActionSnsWritable, Text, IntWritable>
+	{
+		@Override
+		protected void reduce(Text key, Iterable<UserActionSnsWritable> actions, Context ctx)
+			throws IOException, InterruptedException 
+		{
+			int atCount = 0;
+			int retweetCount = 0;
+			int commentCount = 0;
+			boolean followed = false;
+			
+			Iterator<UserActionSnsWritable> iter = actions.iterator();
+			while(iter.hasNext())
+			{
+				UserActionSnsWritable actionItem = iter.next();
+				String[] actionStrs = actionItem.getActions().split("\t");
+				if(actionStrs != null && actionStrs.length >= 3)
+				{
+					atCount += Integer.valueOf(actionStrs[0].trim(), 10);
+					retweetCount += Integer.valueOf(actionStrs[1].trim(), 10);
+					commentCount += Integer.valueOf(actionStrs[2].trim(), 10);
+					followed |= actionItem.isFollowed();
+				}
+			}
+			int score = atCount * 4 + retweetCount * 2 + commentCount + (followed ? 8 : 0); 
+			String[] src_dest = key.toString().split("\t");
+			if(src_dest[0].equals(src_dest[1]))
+				ctx.write(key, new IntWritable(0));
+			else
+				ctx.write(key, new IntWritable(score));
+		}
+	}
 }

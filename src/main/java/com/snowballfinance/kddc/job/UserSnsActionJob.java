@@ -9,7 +9,7 @@ public class UserSnsActionJob extends AbstractJob{
 	}
 	
 	@Override
-	public int run(String[] arg0) throws Exception {
+	public int run(String[] args) throws Exception {
 		return 0;
 	}
 	

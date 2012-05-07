@@ -139,8 +139,8 @@ public class UserActionSnsJoinJob extends Configured implements Tool {
 					atCount += Integer.valueOf(actionStrs[0].trim(), 10);
 					retweetCount += Integer.valueOf(actionStrs[1].trim(), 10);
 					commentCount += Integer.valueOf(actionStrs[2].trim(), 10);
-					followed |= actionItem.isFollowed();
-				}
+				} else if(actionItem.isFollowed())
+					followed = true; 
 			}
 			int score = atCount * 4 + retweetCount * 2 + commentCount + (followed ? 8 : 0); 
 			String[] src_dest = key.toString().split("\t");

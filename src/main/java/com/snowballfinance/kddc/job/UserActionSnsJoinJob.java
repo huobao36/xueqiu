@@ -137,9 +137,16 @@ public class UserActionSnsJoinJob extends Configured implements Tool {
 				String[] actionStrs = actionItem.getActions().split("\t");
 				if(actionStrs != null && actionStrs.length >= 3)
 				{
-					atCount += Integer.valueOf(actionStrs[0].trim(), 10);
-					retweetCount += Integer.valueOf(actionStrs[1].trim(), 10);
-					commentCount += Integer.valueOf(actionStrs[2].trim(), 10);
+					String str0 = actionStrs[0].trim();
+					String str1 = actionStrs[1].trim();
+					String str2 = actionStrs[2].trim();
+					try {
+						atCount += Integer.valueOf(str0, 10);
+						retweetCount += Integer.valueOf(str1, 10);
+						commentCount += Integer.valueOf(str2, 10);
+					} catch (java.lang.NumberFormatException e) {
+						logger.error("Join Reduce Parse Err:" + str0 + "," + str1 +"," + str2, e);
+					}
 				} else if(actionItem.isFollowed())
 					followed = true; 
 			}

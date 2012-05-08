@@ -48,6 +48,7 @@ public class UserActionSnsJoinJob extends Configured implements Tool {
 	public int run(String[] args) throws Exception {
         Configuration conf = getConf();
 		Job job = new Job(conf);
+		job.setJarByClass(UserActionSnsJoinJob.class);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(IntWritable.class);
 		job.setMapperClass(JoinMapper.class);

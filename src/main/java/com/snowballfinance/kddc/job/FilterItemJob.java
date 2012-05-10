@@ -32,6 +32,7 @@ public class FilterItemJob extends Configured implements Tool {
 	
 	public static void main(String[] args)
 	{
+		logger.info("FilterItemJob start.");
 		if(args.length < 2)
 		{
 			System.err.println("Usage: FilterItemJob /path/to/input /path/to/output. \n" +
@@ -39,7 +40,7 @@ public class FilterItemJob extends Configured implements Tool {
 		}
 		int res = 0;
 		try {
-			res = ToolRunner.run(new Configuration(), new UserActionSnsJoinJob(), args);
+			res = ToolRunner.run(new Configuration(), new FilterItemJob(), args);
 		} catch (Exception e) {
 			logger.error("FilterItemJob Tool Runner Err.", e);
 		}
@@ -75,7 +76,9 @@ public class FilterItemJob extends Configured implements Tool {
 		private String getInputFN(Context context) 
 		{
 		    FileSplit fs = (FileSplit) context.getInputSplit();
+		    logger.info("FilterMappder fs:" + fs.toString());
 		    String pathName = fs.getPath().getName();
+		    logger.info("FilterMappder path:" + pathName);
 		    String[] paths = pathName.split("/");
 		    if(paths != null && paths.length > 0)
 		    	return paths[paths.length - 1];
@@ -88,6 +91,7 @@ public class FilterItemJob extends Configured implements Tool {
 				Context context)
 				throws IOException, InterruptedException {
 			String fn = getInputFN(context);
+			logger.info("FilterMapper File Name: " + fn);
 			if(fn.equals(UID_FN))
 			{
 				context.write(ival, new BooleanWritable(true));

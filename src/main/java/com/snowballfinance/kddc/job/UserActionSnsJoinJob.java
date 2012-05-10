@@ -57,6 +57,7 @@ public class UserActionSnsJoinJob extends Configured implements Tool {
 		job.setOutputFormatClass(TextOutputFormat.class);
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(UserActionSnsWritable.class);
+		job.setCombinerClass(JoinReducer.class);
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
 		job.waitForCompletion(true);

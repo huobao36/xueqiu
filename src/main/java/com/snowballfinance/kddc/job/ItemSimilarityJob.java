@@ -50,16 +50,16 @@ public class ItemSimilarityJob extends Configured implements Tool{
 	
 	@Override
 	public int run(String[] arg0) throws Exception {
-		JobConf conf = new JobConf(ItemSimilarityJob.class);
-		conf.setJobName("Item Simarity Job");
-		conf.setOutputKeyClass(Text.class);
-		conf.setOutputValueClass(FloatWritable.class);
+		Configuration conf = getConf();
 		Job job = new Job(conf);
+		job.setJobName("Item Similarity Job");
 		job.setMapperClass(CateAndKeyWordMapper.class);
 		job.setReducerClass(ScoreReducer.class);
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(FloatWritable.class);
 		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
-		FileInputFormat.addInputPaths(job, arg0[0]);
+		FileInputFormat.addInputPath(job, new Path(arg0[0]));
 		FileOutputFormat.setOutputPath(job, new Path(arg0[1]));
 		job.waitForCompletion(true);
 		return 0;

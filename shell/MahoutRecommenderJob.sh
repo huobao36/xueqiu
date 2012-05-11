@@ -3,10 +3,14 @@ path="`dirname $0`"
 INPUT_PATH=$1
 OUTPUT_PATH=$2
 if [ ! -n "$INPUT_PATH" -o ! -n "$OUTPUT_PATH" ];then
-    echo 'Usage: ./UserActionSnsJoinJob INPUT_PATH OUTPUT_PATH USERS_FILE ITEMS_FILE MAX_PREFS_PER_USER'
+    echo 'Usage: ./UserActionSnsJoinJob INPUT_PATH OUTPUT_PATH USERS_FILE ITEMS_FILE FILTER_FILE'
     exit 0
 else
     echo "INPUT_PATH: $INPUT_PATH, OUTPUT_PATH:$OUTPUT_PATH"
 fi
 
-$path/Job.sh com.snowballfinance.kddc.job.MahoutRecommenderJob --input "$1" --output "$2" --usersFile "$3" --itemsFile "$4" --similarityClassname SIMILARITY_COSINE --maxPrefsPerUser 10000 --maxPrefsPerUserInItemSimilarity 10000 --maxSimilaritiesPerItem 10000
+$path/Job.sh com.snowballfinance.kddc.job.MahoutRecommenderJob --input "$1" --output "$2" --usersFile "$3" --itemsFile "$4" --filterFile "$5"  --similarityClassname SIMILARITY_COSINE --maxPrefsPerUser 10000 --maxPrefsPerUserInItemSimilarity 10000 --maxSimilaritiesPerItem 10000 --numRecommendations 3
+
+
+
+

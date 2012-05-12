@@ -10,4 +10,4 @@ else
 fi
 
 
-$path/Job.sh com.snowballfinance.kddc.job.UserActionSnsJoinJob "$1" "$2" 
+$path/Job.sh $KDDC com.snowballfinance.kddc.job.UserActionSnsJoinJob "$1" "$2" 

@@ -31,4 +31,4 @@ export HADOOP_CLASSPATH
 echo -e "Job Class Name: $1"
 
 
-exec "$HADOOP_HOME/bin/hadoop" jar $KDDC_JOB "$@" 
+exec "$HADOOP_HOME/bin/hadoop" jar "$@" 
